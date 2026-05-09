@@ -1,0 +1,545 @@
+-- =====================================================
+-- DATABASE: BTL2
+-- =====================================================
+
+DROP DATABASE IF EXISTS BTL2;
+CREATE DATABASE IF NOT EXISTS BTL2
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE BTL2;
+-- =====================================================
+-- TABLE: ADMINISTRATOR
+-- =====================================================
+CREATE TABLE ADMINISTRATOR (
+    ACCOUNT_ID      VARCHAR(20)     NOT NULL,
+    PRIVILEGE       VARCHAR(50)     NOT NULL,
+    PHONE_NO        VARCHAR(15)     NOT NULL,
+    PASSWORD_HASH   VARCHAR(255)    NOT NULL,
+    EMAIL           VARCHAR(100)    NOT NULL,
+    ROLE  			ENUM('ADMINISTRATOR')  NOT NULL,
+    FULL_NAME       VARCHAR(100)    NOT NULL,
+
+    CONSTRAINT PK_ADMINISTRATOR
+        PRIMARY KEY (ACCOUNT_ID),
+        
+    CONSTRAINT CHK_ADMIN_EMAIL
+        CHECK (EMAIL LIKE '%@%.%'),
+
+    CONSTRAINT CHK_ADMIN_PHONE
+        CHECK (PHONE_NO REGEXP '^0[0-9]{9}$')
+);
+-- =====================================================
+-- TABLE: DOCTOR
+-- =====================================================
+CREATE TABLE DOCTOR (
+    ACCOUNT_ID                  VARCHAR(20)     NOT NULL,
+    LICENSE_NO                  VARCHAR(50),
+    SPECIALIZED_EXAMINATION     VARCHAR(255),
+    DEGREE_TITLE                VARCHAR(100),
+    EXPERIENCE                  TEXT,
+    BIO                         TEXT,
+    POSITION                    VARCHAR(100),
+    YEAR_OF_EXPERIENCE          INT,
+    PHONE_NO                    VARCHAR(15)     NOT NULL,
+    PASSWORD_HASH               VARCHAR(255)    NOT NULL,
+    EMAIL                       VARCHAR(100)    NOT NULL,
+	ROLE  						ENUM('DOCTOR')  NOT NULL,
+    FULL_NAME                   VARCHAR(100)    NOT NULL,
+
+    CONSTRAINT PK_DOCTOR
+        PRIMARY KEY (ACCOUNT_ID),
+
+    CONSTRAINT UQ_DOCTOR_LICENSE
+        UNIQUE (LICENSE_NO),
+
+    CONSTRAINT CHK_DOCTOR_EMAIL
+        CHECK (EMAIL LIKE '%@%.%'),
+
+    CONSTRAINT CHK_DOCTOR_PHONE
+        CHECK (PHONE_NO REGEXP '^0[0-9]{9}$'),
+
+    CONSTRAINT CHK_DOCTOR_EXPERIENCE
+        CHECK (YEAR_OF_EXPERIENCE IS NULL OR YEAR_OF_EXPERIENCE >= 0)
+);
+
+
+-- =====================================================
+-- TABLE: CUSTOMER
+-- =====================================================
+CREATE TABLE CUSTOMER (
+    ACCOUNT_ID      VARCHAR(20)     NOT NULL,
+    PHONE_NO        VARCHAR(15)     NOT NULL,
+    PASSWORD_HASH   VARCHAR(255)    NOT NULL,
+    EMAIL           VARCHAR(100)    NOT NULL,
+    ROLE  			ENUM('CUSTOMER')  NOT NULL,
+    FULL_NAME       VARCHAR(100)    NOT NULL,
+    REFERRER_CODE   VARCHAR(50),
+
+    CONSTRAINT PK_CUSTOMER
+        PRIMARY KEY (ACCOUNT_ID),
+
+    CONSTRAINT CHK_CUSTOMER_EMAIL
+        CHECK (EMAIL LIKE '%@%.%'),
+
+    CONSTRAINT CHK_CUSTOMER_PHONE
+        CHECK (PHONE_NO REGEXP '^0[0-9]{9}$')
+);
+
+
+-- =====================================================
+-- TABLE: PROFILE
+-- =====================================================
+CREATE TABLE PROFILE (
+    PROFILE_ID              VARCHAR(20)     		NOT NULL,
+    SSN                     VARCHAR(20),
+    ETHNICITY               VARCHAR(50),
+    EMAIL                   VARCHAR(100),
+    HEALTH_INSURANCE_CODE   VARCHAR(50),
+    JOB                     VARCHAR(100),
+    FULL_NAME               VARCHAR(100)    		NOT NULL,
+    PHONE_NO                VARCHAR(15)     		NOT NULL,
+    PROVINCE_CITY           VARCHAR(100),
+    DISTRICT_COUNTY         VARCHAR(100),
+    WARD_COMMUNE            VARCHAR(100),
+    SPECIFIC_ADDRESS        VARCHAR(255),
+	GENDER  				ENUM('Male', 'Female')  NOT NULL,
+    DATE_OF_BIRTH           DATE            		NOT NULL,
+    ACCOUNT_ID              VARCHAR(20)     		NOT NULL,
+
+    CONSTRAINT PK_PROFILE
+        PRIMARY KEY (PROFILE_ID),
+
+    CONSTRAINT FK_PROFILE_CUSTOMER
+        FOREIGN KEY (ACCOUNT_ID)
+        REFERENCES CUSTOMER(ACCOUNT_ID),
+
+    CONSTRAINT UQ_PROFILE_SSN
+        UNIQUE (SSN),
+
+    CONSTRAINT UQ_PROFILE_INSURANCE
+        UNIQUE (HEALTH_INSURANCE_CODE),
+        
+    CONSTRAINT CHK_PROFILE_SSN
+        CHECK (SSN IS NULL OR SSN REGEXP '^[0-9]{12}$'),
+
+    CONSTRAINT CHK_PROFILE_EMAIL
+        CHECK (EMAIL IS NULL OR EMAIL LIKE '%@%.%'),
+
+    CONSTRAINT CHK_PROFILE_PHONE
+        CHECK (PHONE_NO REGEXP '^0[0-9]{9}$')
+);
+
+
+-- =====================================================
+-- TABLE: RELATED_TO
+-- =====================================================
+CREATE TABLE RELATED_TO (
+    PROFILE_ID              VARCHAR(20)     NOT NULL,
+    DEPENDENT_PROFILE_ID    VARCHAR(20)     NOT NULL,
+    RELATIONSHIP  			ENUM('Ba', 'Mẹ', 'Con', 'Chồng', 'Vợ', 'Khác')  NOT NULL,
+
+    CONSTRAINT PK_RELATED_TO
+        PRIMARY KEY (PROFILE_ID, DEPENDENT_PROFILE_ID),
+
+    CONSTRAINT FK_RELATED_TO_PROFILE
+        FOREIGN KEY (PROFILE_ID)
+        REFERENCES PROFILE(PROFILE_ID),
+
+    CONSTRAINT FK_RELATED_TO_DEPENDENT
+        FOREIGN KEY (DEPENDENT_PROFILE_ID)
+        REFERENCES PROFILE(PROFILE_ID),
+
+    CONSTRAINT CHK_RELATED_TO_SELF
+        CHECK (PROFILE_ID <> DEPENDENT_PROFILE_ID)
+);
+
+
+-- =====================================================
+-- TABLE: MEDICAL_FACILITY
+-- =====================================================
+CREATE TABLE MEDICAL_FACILITY (
+    FACILITY_ID     VARCHAR(20)     NOT NULL,
+    BRAND_NAME      VARCHAR(100)    NOT NULL,
+    INTRODUCTION    TEXT,
+    WEBSITE_URL     VARCHAR(255),
+    FACILITY_TYPE  ENUM('HOSPITAL', 'CLINIC', 'VACCINATION_CENTER')  NOT NULL,
+
+    CONSTRAINT PK_MEDICAL_FACILITY
+        PRIMARY KEY (FACILITY_ID),
+
+    CONSTRAINT CHK_FACILITY_URL
+        CHECK (WEBSITE_URL IS NULL
+               OR WEBSITE_URL REGEXP '^https?://.+')
+);
+
+
+
+
+-- =====================================================
+-- TABLE: SERVICES
+-- =====================================================
+CREATE TABLE SERVICES (
+    FACILITY_ID     VARCHAR(20)     NOT NULL,
+    SERVICE_NAME    VARCHAR(100)    NOT NULL,
+    PRICE           DECIMAL(15,2)   NOT NULL,
+
+    CONSTRAINT PK_SERVICES
+        PRIMARY KEY (FACILITY_ID, SERVICE_NAME),
+
+    CONSTRAINT FK_SERVICES_FACILITY
+        FOREIGN KEY (FACILITY_ID)
+        REFERENCES MEDICAL_FACILITY(FACILITY_ID),
+
+    CONSTRAINT CHK_SERVICES_PRICE
+        CHECK (PRICE >= 0)
+);
+
+-- =====================================================
+-- TABLE: TECHNICAL_LINK_LISTS
+-- =====================================================
+CREATE TABLE TECHNICAL_LINK_LISTS (
+    TECHNICAL_LINK  VARCHAR(255)    NOT NULL,
+    FACILITY_ID     VARCHAR(20)     NOT NULL,
+
+    CONSTRAINT PK_TECHNICAL_LINK_LISTS
+        PRIMARY KEY (TECHNICAL_LINK, FACILITY_ID),
+
+    CONSTRAINT FK_TECHNICAL_LINK_HOSPITAL
+        FOREIGN KEY (FACILITY_ID)
+        REFERENCES MEDICAL_FACILITY(FACILITY_ID),
+
+    CONSTRAINT CHK_TECHNICAL_LINK_URL
+        CHECK (TECHNICAL_LINK REGEXP '^https?://.+')
+);
+-- =====================================================
+-- TABLE: INVENTORY
+-- =====================================================
+CREATE TABLE INVENTORY (
+    INVENTORY       VARCHAR(100)    NOT NULL,
+    FACILITY_ID     VARCHAR(20)     NOT NULL,
+
+    CONSTRAINT PK_INVENTORY
+        PRIMARY KEY (INVENTORY, FACILITY_ID),
+
+    CONSTRAINT FK_INVENTORY_VACCINATION_CENTER
+        FOREIGN KEY (FACILITY_ID)
+        REFERENCES MEDICAL_FACILITY(FACILITY_ID)
+);
+
+
+-- =====================================================
+-- TABLE: MEDICAL_SPECIALITY
+-- =====================================================
+CREATE TABLE MEDICAL_SPECIALITY (
+    SPECIALTY_ID    VARCHAR(20)     NOT NULL,
+    NAME            VARCHAR(100)    NOT NULL,
+    DESCRIPTION     TEXT,
+
+    CONSTRAINT PK_MEDICAL_SPECIALITY
+        PRIMARY KEY (SPECIALTY_ID),
+
+    CONSTRAINT UQ_SPECIALITY_NAME
+        UNIQUE (NAME)
+);
+
+
+-- =====================================================
+-- TABLE: SPECIALIZE_IN
+-- =====================================================
+CREATE TABLE SPECIALIZE_IN (
+    SPECIALTY_ID    VARCHAR(20)     NOT NULL,
+    DOCTOR_ID       VARCHAR(20)     NOT NULL,
+
+    CONSTRAINT PK_SPECIALIZE_IN
+        PRIMARY KEY (SPECIALTY_ID, DOCTOR_ID),
+
+    CONSTRAINT FK_SPECIALIZE_IN_SPECIALTY
+        FOREIGN KEY (SPECIALTY_ID)
+        REFERENCES MEDICAL_SPECIALITY(SPECIALTY_ID),
+
+    CONSTRAINT FK_SPECIALIZE_IN_DOCTOR
+        FOREIGN KEY (DOCTOR_ID)
+        REFERENCES DOCTOR(ACCOUNT_ID)
+);
+
+-- =====================================================
+-- TABLE: HAS_SPECIALITY
+-- =====================================================
+CREATE TABLE HAS_SPECIALITY (
+    SPECIALTY_ID    VARCHAR(20)     NOT NULL,
+    FACILITY_ID     VARCHAR(20)     NOT NULL,
+
+    CONSTRAINT PK_HAS_SPECIALITY
+        PRIMARY KEY (SPECIALTY_ID, FACILITY_ID),
+
+    CONSTRAINT FK_HAS_SPECIALITY_SPECIALTY
+        FOREIGN KEY (SPECIALTY_ID)
+        REFERENCES MEDICAL_SPECIALITY(SPECIALTY_ID),
+
+    CONSTRAINT FK_HAS_SPECIALITY_FACILITY
+        FOREIGN KEY (FACILITY_ID)
+        REFERENCES MEDICAL_FACILITY(FACILITY_ID)
+);
+
+
+-- =====================================================
+-- TABLE: BRANCH
+-- =====================================================
+CREATE TABLE BRANCH (
+    BRANCH_ID           VARCHAR(20)     NOT NULL,
+    FACILITY_ID         VARCHAR(20)     NOT NULL,
+    ADDRESS             VARCHAR(255)    NOT NULL,
+    HOTLINE             VARCHAR(15),
+    OPERATING_HOURS     VARCHAR(100)    NOT NULL,
+
+    CONSTRAINT PK_BRANCH
+        PRIMARY KEY (FACILITY_ID,BRANCH_ID),
+
+    CONSTRAINT FK_BRANCH_FACILITY
+        FOREIGN KEY (FACILITY_ID)
+        REFERENCES MEDICAL_FACILITY(FACILITY_ID),
+
+    CONSTRAINT CHK_BRANCH_HOTLINE
+        CHECK (HOTLINE IS NULL
+               OR HOTLINE REGEXP '^[0-9]{10,11}$'
+               OR HOTLINE REGEXP '^1[89]00[0-9]{4}$')
+);
+
+-- =====================================================
+-- TABLE: WORKS_AT
+-- =====================================================
+CREATE TABLE WORKS_AT (
+    FACILITY_ID     VARCHAR(20)     NOT NULL,
+    BRANCH_ID       VARCHAR(20)     NOT NULL,
+    DOCTOR_ID       VARCHAR(20)     NOT NULL,
+    START_DATE      DATE            NOT NULL,
+    END_DATE        DATE,
+    WORKING_DAYS    VARCHAR(100)    NOT NULL,
+    SHIFT_TIMES     VARCHAR(100)    NOT NULL,
+
+    CONSTRAINT PK_WORKS_AT
+        PRIMARY KEY (FACILITY_ID, BRANCH_ID, DOCTOR_ID),
+
+    CONSTRAINT FK_WORKS_AT_BRANCH
+        FOREIGN KEY (FACILITY_ID, BRANCH_ID)
+        REFERENCES BRANCH(FACILITY_ID, BRANCH_ID),
+
+    CONSTRAINT FK_WORKS_AT_DOCTOR
+        FOREIGN KEY (DOCTOR_ID)
+        REFERENCES DOCTOR(ACCOUNT_ID),
+
+    CONSTRAINT CHK_WORKS_AT_DATES
+        CHECK (END_DATE IS NULL OR END_DATE > START_DATE)
+);
+
+-- =====================================================
+-- TABLE: SCHEDULE
+-- =====================================================
+CREATE TABLE SCHEDULE (
+    SCHEDULE_ID             VARCHAR(20)     NOT NULL,
+    DATE                    DATE            NOT NULL,
+    START_TIME              TIME            NOT NULL,
+    END_TIME                TIME            NOT NULL,
+    SLOT_DURATION           INT             NOT NULL,
+    MAX_PATIENT_PER_SLOT    INT             NOT NULL,
+    FACILITY_ID             VARCHAR(20)     NOT NULL,
+    BRANCH_ID               VARCHAR(20)     NOT NULL,
+
+    CONSTRAINT PK_SCHEDULE
+        PRIMARY KEY (SCHEDULE_ID),
+
+    CONSTRAINT FK_SCHEDULE_BRANCH
+        FOREIGN KEY (FACILITY_ID, BRANCH_ID)
+        REFERENCES BRANCH(FACILITY_ID, BRANCH_ID),
+
+    CONSTRAINT CHK_SCHEDULE_TIMES
+        CHECK (END_TIME > START_TIME),
+
+    CONSTRAINT CHK_SCHEDULE_SLOT_DURATION
+        CHECK (SLOT_DURATION > 0),
+
+    CONSTRAINT CHK_SCHEDULE_MAX_PATIENTS
+        CHECK (MAX_PATIENT_PER_SLOT >= 1),
+
+    CONSTRAINT UQ_SCHEDULE_BRANCH_DATE
+        UNIQUE (FACILITY_ID, BRANCH_ID, DATE)
+);
+
+-- =====================================================
+-- TABLE: TIMESLOT (weak entity)
+-- =====================================================
+CREATE TABLE TIMESLOT (
+    SCHEDULE_ID         VARCHAR(20)     NOT NULL,
+    SLOT_NO             INT             NOT NULL,
+    SLOT_START_TIME     TIME            NOT NULL,
+    SLOT_END_TIME       TIME            NOT NULL,
+   STATUS  ENUM('AVAILABLE', 'FULLY_BOOKED', 'CANCELLED')  NOT NULL  DEFAULT 'AVAILABLE',
+
+    CONSTRAINT PK_TIMESLOT
+        PRIMARY KEY (SCHEDULE_ID, SLOT_NO),
+
+    CONSTRAINT FK_TIMESLOT_SCHEDULE
+        FOREIGN KEY (SCHEDULE_ID)
+        REFERENCES SCHEDULE(SCHEDULE_ID),
+
+    CONSTRAINT CHK_TIMESLOT_TIMES
+        CHECK (SLOT_END_TIME > SLOT_START_TIME),
+
+    CONSTRAINT CHK_TIMESLOT_SLOT_NO
+        CHECK (SLOT_NO >= 1)
+);
+-- =====================================================
+-- TABLE: APPOINTMENT
+-- =====================================================
+CREATE TABLE APPOINTMENT (
+    APPOINTMENT_ID  VARCHAR(20)     NOT NULL,
+    TIME            TIME            NOT NULL,
+    DATE            DATE            NOT NULL,
+    SERVICE_TYPE  	VARCHAR(100),
+    SPECIALTY_ID    VARCHAR(20)     NOT NULL,
+    PROFILE_ID      VARCHAR(20)     NOT NULL,
+    SCHEDULE_ID     VARCHAR(20)     NOT NULL,
+    SLOT_NO         INT             NOT NULL,
+
+    CONSTRAINT PK_APPOINTMENT
+        PRIMARY KEY (APPOINTMENT_ID),
+
+    CONSTRAINT FK_APPOINTMENT_SPECIALTY
+        FOREIGN KEY (SPECIALTY_ID)
+        REFERENCES MEDICAL_SPECIALITY(SPECIALTY_ID),
+
+    CONSTRAINT FK_APPOINTMENT_PROFILE
+        FOREIGN KEY (PROFILE_ID)
+        REFERENCES PROFILE(PROFILE_ID),
+
+    CONSTRAINT FK_APPOINTMENT_TIMESLOT
+        FOREIGN KEY (SCHEDULE_ID, SLOT_NO)
+        REFERENCES TIMESLOT(SCHEDULE_ID, SLOT_NO)
+);
+
+-- =====================================================
+-- TABLE: ASSIGNS
+-- =====================================================
+CREATE TABLE ASSIGNS (
+    DOCTOR_ID       VARCHAR(20)     NOT NULL,
+    APPOINTMENT_ID  VARCHAR(20)     NOT NULL,
+
+    CONSTRAINT PK_ASSIGNS
+        PRIMARY KEY (DOCTOR_ID, APPOINTMENT_ID),
+
+    CONSTRAINT FK_ASSIGNS_DOCTOR
+        FOREIGN KEY (DOCTOR_ID)
+        REFERENCES DOCTOR(ACCOUNT_ID),
+
+    CONSTRAINT FK_ASSIGNS_APPOINTMENT
+        FOREIGN KEY (APPOINTMENT_ID)
+        REFERENCES APPOINTMENT(APPOINTMENT_ID)
+);
+
+-- =====================================================
+-- TABLE: SYMPTOM_NOTES
+-- =====================================================
+CREATE TABLE SYMPTOM_NOTES (
+    APPOINTMENT_ID              VARCHAR(20)     NOT NULL,
+    APPOINTMENTS_SYMPTOM_NOTES  VARCHAR(500)    NOT NULL,
+
+    CONSTRAINT PK_SYMPTOM_NOTES
+        PRIMARY KEY (APPOINTMENT_ID,
+                     APPOINTMENTS_SYMPTOM_NOTES),
+
+    CONSTRAINT FK_SYMPTOM_NOTES_APPOINTMENT
+        FOREIGN KEY (APPOINTMENT_ID)
+        REFERENCES APPOINTMENT(APPOINTMENT_ID)
+);
+
+-- =====================================================
+-- TABLE: BILLING_RECORD
+-- =====================================================
+CREATE TABLE BILLING_RECORD (
+    BILLING_ID      VARCHAR(20)     NOT NULL,
+    APPOINTMENT_ID  VARCHAR(20)     NOT NULL,
+    TOTAL_FEE       DECIMAL(15,2)   NOT NULL,
+    PAYMENT_METHOD  ENUM ('CASH', 'BANK_TRANSFER',
+                                  'CREDIT_CARD', 'E_WALLET',
+                                  'INSURANCE', 'OTHER') NOT NULL,
+    STATUS  ENUM('PENDING', 'PAID', 'REFUNDED', 'CANCELLED')  NOT NULL  DEFAULT 'PENDING',
+    TIMESTAMP       DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT PK_BILLING_RECORD
+        PRIMARY KEY (BILLING_ID),
+
+    CONSTRAINT UQ_BILLING_APPOINTMENT
+        UNIQUE (APPOINTMENT_ID),
+
+    CONSTRAINT FK_BILLING_APPOINTMENT
+        FOREIGN KEY (APPOINTMENT_ID)
+        REFERENCES APPOINTMENT(APPOINTMENT_ID),
+
+    CONSTRAINT CHK_BILLING_TOTAL_FEE
+        CHECK (TOTAL_FEE >= 0)
+);
+
+-- =====================================================
+-- TABLE: PRESCRIPTION
+-- =====================================================
+CREATE TABLE PRESCRIPTION (
+    PRESCRIPTION_ID     VARCHAR(20)     NOT NULL,
+
+    CONSTRAINT PK_PRESCRIPTION
+        PRIMARY KEY (PRESCRIPTION_ID)
+        
+);
+
+-- =====================================================
+-- TABLE: MEDICAL_RECORD
+-- =====================================================
+CREATE TABLE MEDICAL_RECORD (
+    MEDICAL_RECORD_ID   VARCHAR(20)                         NOT NULL,
+    STATUS              ENUM('DRAFT', 'CONCLUDED')          NOT NULL    DEFAULT 'DRAFT',
+    PRIMARY_DIAGNOSIS   VARCHAR(255),
+    DETAILED_NOTE       TEXT,
+    DATE_OF_ISSUANCE    DATE                                NOT NULL,
+    APPOINTMENT_ID      VARCHAR(20)                         NOT NULL,
+	PRESCRIPTION_ID     VARCHAR(20)     					NOT NULL,
+    
+    CONSTRAINT PK_MEDICAL_RECORD
+        PRIMARY KEY (MEDICAL_RECORD_ID),
+
+    CONSTRAINT UQ_MEDICAL_RECORD_APPOINTMENT
+        UNIQUE (APPOINTMENT_ID),
+
+    CONSTRAINT FK_MEDICAL_RECORD_APPOINTMENT
+        FOREIGN KEY (APPOINTMENT_ID)
+        REFERENCES APPOINTMENT(APPOINTMENT_ID),
+
+    CONSTRAINT FK_MEDICAL_RECORD_PRESCRIPTION
+        FOREIGN KEY (PRESCRIPTION_ID)
+        REFERENCES PRESCRIPTION(PRESCRIPTION_ID),
+
+   CONSTRAINT CHK_MEDICAL_RECORD_CONCLUDED
+   CHECK (STATUS = 'DRAFT' OR PRIMARY_DIAGNOSIS IS NOT NULL)
+);
+
+
+-- =====================================================
+-- TABLE: PRESCRIPTION_DETAIL
+-- =====================================================
+CREATE TABLE PRESCRIPTION_DETAIL (
+    PRESCRIPTION_ID     VARCHAR(20)     NOT NULL,
+    DETAIL_NO           INT             NOT NULL,
+    FREQUENCY           VARCHAR(100)    NOT NULL,
+    MEDICATION          VARCHAR(255)    NOT NULL,
+    USAGES              VARCHAR(255)    NOT NULL,
+    INSTRUCTION         TEXT,
+
+    CONSTRAINT PK_PRESCRIPTION_DETAIL
+        PRIMARY KEY (PRESCRIPTION_ID, DETAIL_NO),
+
+    CONSTRAINT FK_PRESCRIPTION_DETAIL_PRESCRIPTION
+        FOREIGN KEY (PRESCRIPTION_ID)
+        REFERENCES PRESCRIPTION(PRESCRIPTION_ID),
+
+    CONSTRAINT CHK_PRESCRIPTION_DETAIL_NO
+        CHECK (DETAIL_NO >= 1)
+);
