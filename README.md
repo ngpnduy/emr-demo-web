@@ -1,13 +1,5 @@
 # Electronic Medical Record (EMR) Management System
 
-This project is a comprehensive Full-stack web application designed to manage medical appointments and electronic health records. The system enables users to book appointments, view medical history, and manage multiple patient profiles through a modern and intuitive interface.
-
-## 🚀 Key Features
-- **Smart Booking:** Real-time display of available time slots with occupancy rates (e.g., 1/2 slots booked).
-- **Appointment Management:** View lists, search by date, and filter by status (All, Upcoming, Past).
-- **Flexible Sorting:** Sort appointments in ascending or descending order directly from the Database.
-- **Strict Business Constraints:** Uses Triggers and Stored Procedures to ensure data integrity (e.g., preventing the deletion of paid appointments).
-
 ## 🛠 Technologies Used
 - **Frontend:** React, Tailwind CSS, Lucide Icons, Sonner.
 - **Backend:** Node.js, Express.
