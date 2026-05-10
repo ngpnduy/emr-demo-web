@@ -39,10 +39,10 @@ Open a terminal and run the following commands:
 ```bash
 cd backend
 
-# Run this only one when you first launch the project
+# Run this only once when you first launch the project
 npm install
 
-# Initialize the database (create tables, procedures, triggers, and sample data)
+# Initialize the database (create tables, functions, procedures, triggers, and sample data)
 npm run db:init
 
 # Run the server in development mode
@@ -55,7 +55,7 @@ Open a new terminal and run:
 ```bash
 cd frontend
 
-# Run this only one when you first launch the project
+# Run this only once when you first launch the project
 npm install
 
 # Run the React application
