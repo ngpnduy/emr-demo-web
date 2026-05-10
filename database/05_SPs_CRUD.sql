@@ -202,7 +202,12 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = '[DB] DELETE failed: APPOINTMENT_ID not found.';
     END IF;
- 
+    
+    IF v_appt_date < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '[DB] DELETE failed: The appointment date has already passed.';
+    END IF;
+
     SELECT MEDICAL_RECORD_ID
       INTO v_medical_record_id
       FROM MEDICAL_RECORD
@@ -223,10 +228,7 @@ BEGIN
             SET MESSAGE_TEXT = '[DB] DELETE failed: This appointment has been paid.';
     END IF;
  
-    IF v_appt_date < CURDATE() THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = '[DB] DELETE failed: The appointment date has already passed.';
-    END IF;
+    
  
     -- =========================================================
     -- START CLEANING CHILDREN TABLE BEFORE DELETING PARENT TABLE

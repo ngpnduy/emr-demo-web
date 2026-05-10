@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
-import { Trash2, Edit3, X, ArrowUpDown, Calculator, CalendarDays } from 'lucide-react'; 
+import { Trash2, Edit3, X, ArrowUpDown } from 'lucide-react'; 
 
 const getLocalDateString = (dateInput) => {
     const d = dateInput ? new Date(dateInput) : new Date();
@@ -61,14 +61,6 @@ const PatientAppointments = ({ customerId = 'C001' }) => {
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editForm, setEditForm] = useState(null);
-
-    const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-    const [isCalculating, setIsCalculating] = useState(false);
-    const [expenseDates, setExpenseDates] = useState({
-        fromDate: '2026-01-01',
-        toDate: getLocalDateString()
-    });
-    const [expenseReport, setExpenseReport] = useState(null);
     
     const todayStr = getLocalDateString();
     const maxDateStr = '2026-06-11'; 
@@ -101,51 +93,6 @@ const PatientAppointments = ({ customerId = 'C001' }) => {
     useEffect(() => {
         fetchAppointments();
     }, [customerId, filter, sortOrder, searchDate]);
-
-    const handleCalculateFamilyExpense = async () => {
-        if (!expenseDates.fromDate || !expenseDates.toDate) {
-            toast.error("[FE] Vui lòng chọn đầy đủ Từ ngày và Đến ngày.");
-            return;
-        }
-
-
-        setIsCalculating(true);
-        try {
-            const expensePromises = PROFILES.map(async (profile) => {
-                const response = await api.get(`/query/profiles/${profile.id}/expense`, {
-                    params: { fromDate: expenseDates.fromDate, toDate: expenseDates.toDate }
-                });
-                return {
-                    name: profile.name,
-                    relationship: profile.relationship || 'Tôi',
-                    amount: parseFloat(response.data.data) || 0
-                };
-            });
-
-            const results = await Promise.all(expensePromises);
-            const totalAmount = results.reduce((sum, item) => sum + item.amount, 0);
-
-            setExpenseReport({
-                totalFamily: totalAmount,
-                details: results
-            });
-        } catch (error) {
-            const dbErrorMsg = error.response?.data?.message;
-            if (dbErrorMsg) {
-                toast.error(dbErrorMsg);
-                console.error(dbErrorMsg);
-            } else {
-                toast.error("[FE] Có lỗi xảy ra khi tính toán viện phí.");
-                console.error("[FE] Lỗi tính toán viện phí", error);
-            }
-        } finally {
-            setIsCalculating(false);
-        }
-    };
-
-    useEffect(() => {
-        setExpenseReport(null);
-    }, [isExpenseModalOpen, expenseDates]);
 
     // --- MODAL & API CALLS ---
     const fetchAvailableSlotsForModal = async (dateStr, formState) => {
@@ -259,19 +206,11 @@ const PatientAppointments = ({ customerId = 'C001' }) => {
 
     return (
         <div className="max-w-7xl mx-auto p-8 bg-white mt-10">
-            <div className="flex justify-between items-end mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Lịch khám đã đặt</h1>
-                <button 
-                    onClick={() => setIsExpenseModalOpen(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold shadow-sm transition-all"
-                >
-                    <Calculator size={18} />
-                    Thống kê chi tiêu
-                </button>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">Lịch khám đã đặt</h1>
 
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center space-x-4">
+                    {/* Nhóm nút lọc trạng thái */}
                     <div className="flex space-x-2">
                         {[{ id: 'all', label: 'Tất cả' }, { id: 'upcoming', label: 'Sắp tới' }, { id: 'past', label: 'Đã qua' }].map((btn) => {
                             const isDisabled = searchDate !== '';
@@ -294,6 +233,7 @@ const PatientAppointments = ({ customerId = 'C001' }) => {
                         })}
                     </div>
 
+                    {/* Thanh tìm kiếm theo ngày */}
                     <div className="flex items-center gap-2 border-l pl-4 border-gray-300">
                         <label className="text-sm font-medium text-gray-600">Tìm ngày:</label>
                         <input 
@@ -316,6 +256,7 @@ const PatientAppointments = ({ customerId = 'C001' }) => {
                     </div>
                 </div>
 
+                {/* Nút sắp xếp */}
                 <button
                     onClick={() => setSortOrder(sortOrder === 'DESC' ? 'ASC' : 'DESC')}
                     className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all shadow-sm"
@@ -394,95 +335,7 @@ const PatientAppointments = ({ customerId = 'C001' }) => {
                 </table>
             </div>
 
-            {isExpenseModalOpen && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
-                        <div className="flex justify-between items-center p-5 border-b bg-emerald-50">
-                            <h2 className="text-xl font-bold text-emerald-800 flex items-center gap-2">
-                                <Calculator size={22} />
-                                Báo cáo Chi tiêu Y tế
-                            </h2>
-                            <button onClick={() => setIsExpenseModalOpen(false)} className="text-emerald-500 hover:text-emerald-700 bg-white rounded-full p-1 shadow-sm">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="flex gap-4 mb-6">
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Từ ngày</label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <CalendarDays size={16} className="text-gray-400" />
-                                        </div>
-                                        <input 
-                                            type="date" 
-                                            value={expenseDates.fromDate}
-                                            onChange={(e) => setExpenseDates({...expenseDates, fromDate: e.target.value})}
-                                            className="w-full border border-gray-300 pl-10 p-2.5 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-gray-700"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Đến ngày</label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <CalendarDays size={16} className="text-gray-400" />
-                                        </div>
-                                        <input 
-                                            type="date" 
-                                            value={expenseDates.toDate}
-                                            onChange={(e) => setExpenseDates({...expenseDates, toDate: e.target.value})}
-                                            className="w-full border border-gray-300 pl-10 p-2.5 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-gray-700"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button 
-                                onClick={handleCalculateFamilyExpense}
-                                disabled={isCalculating}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all disabled:opacity-70 flex justify-center items-center gap-2"
-                            >
-                                {isCalculating ? (
-                                    <>
-                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        Đang tính toán...
-                                    </>
-                                ) : "Bắt đầu tính toán"}
-                            </button>
-
-                            {expenseReport && (
-                                <div className="mt-6 pt-6 border-t border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="text-center mb-5">
-                                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">Tổng chi phí</p>
-                                        <p className="text-4xl font-black text-emerald-600">
-                                            {expenseReport.totalFamily.toLocaleString('vi-VN')} <span className="text-2xl text-emerald-400">VNĐ</span>
-                                        </p>
-                                    </div>
-
-                                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                        <div className="space-y-3">
-                                            {expenseReport.details.map((detail, idx) => (
-                                                <div key={idx} className="flex justify-between items-center">
-                                                    <div>
-                                                        <p className="text-sm font-bold text-gray-700">{detail.name}</p>
-                                                        <p className="text-xs text-gray-500">{detail.relationship}</p>
-                                                    </div>
-                                                    <p className="text-sm font-bold text-gray-900">
-                                                        {detail.amount.toLocaleString('vi-VN')} đ
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
+            {/* Modal chỉnh sửa */}
             {isEditModalOpen && editForm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden">

@@ -46,4 +46,23 @@ export const getAvailableTimeslots = async (req, res) => {
     }
 }
 
+export const getProfileExpense = async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        const { fromDate, toDate } = req.query;
+
+        const [rows] = await db.query(
+            'SELECT fn_profile_paid_total(?, ?, ?) AS total_paid',
+            [profileId, fromDate, toDate]
+        );
+
+        res.status(200).json({ 
+            success: true, 
+            data: rows[0].total_paid || 0 
+        });
+    } catch (error) {
+        console.error("Error when calling fn_profile_paid_total", error);            
+        res.status(500).json({ message: error.message || "System error" });
+    }
+}
 

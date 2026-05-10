@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAvailableTimeslots, getPatientAppointments } from '../controllers/queryControllers.js';
+import { getAvailableTimeslots, getPatientAppointments,getProfileExpense } from '../controllers/queryControllers.js';
 
 const router = express.Router();
 
@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.get('/timeslots', getAvailableTimeslots);
 router.get('/patients/:customerId/appointments', getPatientAppointments);
-// router.get('/specialties/popular', getPopularSpecialties);
+router.get('/profiles/:profileId/expense', getProfileExpense);
 
 export default router;
