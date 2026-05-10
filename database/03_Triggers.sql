@@ -19,10 +19,10 @@ BEGIN
     IF IFNULL(@disable_date_check, 0) = 0 THEN 
         IF NEW.Date <= DATE(current_dt) THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = '[BE] ERROR: Must book before at least 1 day';
+            SET MESSAGE_TEXT = '[DB] ERROR: Must book before at least 1 day';
         ELSEIF NEW.Date = DATE_ADD(DATE(current_dt), INTERVAL 1 DAY) AND TIME(current_dt) >= '16:00:00' THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = '[BE] ERROR: Must book before 16:00 the following day';
+            SET MESSAGE_TEXT = '[DB] ERROR: Appointments for the following day must be made prior to 16:00 of the preceding day';
         END IF;
     END IF;
 END //

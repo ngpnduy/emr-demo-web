@@ -60,14 +60,14 @@ VALUES
 ('AD002', 'SYSTEM_ADMIN', '0901234567', 'hash_pass_3', 'lethic@hospital.vn', 'ADMINISTRATOR', 'Lê Thị C'),
 ('AD003', 'MODERATOR', '0998877665', 'hash_pass_4', 'mod1@hospital.vn', 'ADMINISTRATOR', 'Trần Quản Trị');
 
--- Khách hàng: C001 (Thành), C002 (Khách), C003 (Thảo)
+-- Customers: C001 (Thành), C002 (Khách), C003 (Thảo)
 INSERT INTO CUSTOMER(ACCOUNT_ID, PHONE_NO, PASSWORD_HASH, EMAIL, ROLE, FULL_NAME, REFERRER_CODE)
 VALUES
 ('C001', '0336370024', 'Thanhkhung1', 'congthanhpham147@gmail.com', 'CUSTOMER', 'Phạm Nguyễn Công Thành', NULL),
 ('C002', '0911223344', 'hash_cust_2', 'khachhang2@gmail.com', 'CUSTOMER', 'Lê Văn Khách', 'REF_001'),
 ('C003', '0922334455', 'hash_cust_3', 'khachhang3@gmail.com', 'CUSTOMER', 'Trần Phương Thảo', NULL);
 
--- Giữ nguyên Bác sĩ
+-- Doctors
 INSERT INTO DOCTOR (ACCOUNT_ID, PHONE_NO, PASSWORD_HASH, EMAIL, ROLE, FULL_NAME, LICENSE_NO, SPECIALIZED_EXAMINATION, DEGREE_TITLE, EXPERIENCE, BIO, POSITION, YEAR_OF_EXPERIENCE)
 VALUES
 ('DOC01', '0955667788', 'hash_doc_1', 'bacsi1@hospital.vn', 'DOCTOR', 'BS. Nguyễn Trí Thức', 'LIC001', 'Khám nội tim mạch', 'Tiến sĩ Y khoa', 'Chuyên gia can thiệp tim mạch', 'Giám đốc bệnh viện', 'Giám đốc', 20),
@@ -76,7 +76,7 @@ VALUES
 ('DOC08', '0921000002', 'hash_doc_8', 'bacsi8@tamanh.vn', 'DOCTOR', 'BS. Nguyễn Đức Hải', 'LIC008', 'Khám thần kinh', 'Tiến sĩ Thần kinh học', 'Chuyên gia Thần kinh Tâm Anh', 'Chuyên điều trị đột quỵ.', 'Bác sĩ điều trị', 18);
 
 -- =====================================================
--- 4. PROFILE & RELATED_TO (Tập trung vào C001 - Thành)
+-- 4. PROFILE & RELATED_TO (Focus on C001 - Thành)
 -- =====================================================
 INSERT INTO PROFILE (PROFILE_ID, SSN, ETHNICITY, EMAIL, HEALTH_INSURANCE_CODE, JOB, FULL_NAME, PHONE_NO, PROVINCE_CITY, DISTRICT_COUNTY, WARD_COMMUNE, SPECIFIC_ADDRESS, GENDER, DATE_OF_BIRTH, ACCOUNT_ID)
 VALUES
@@ -88,7 +88,7 @@ VALUES
 ('PROF004', '079099007788', 'Kinh', 'khachhang2@gmail.com', 'GD987654321', 'Nhân viên', 'Lê Văn Khách', '0911223344', 'TP.HCM', 'Quận 1', 'Bến Nghé', '12 Lê Duẩn', 'Male', '1990-12-12', 'C002'),
 ('PROF005', '079099008899', 'Kinh', 'khachhang3@gmail.com', 'GD112233445', 'Kế toán', 'Trần Phương Thảo', '0922334455', 'TP.HCM', 'Quận 3', 'Phường 6', '15 Võ Văn Tần', 'Female', '1995-08-08', 'C003');
 
--- Thiết lập gia phả: Thành (PROF001) khai báo Ba (PROF002) và Mẹ (PROF003)
+-- Thành's family
 INSERT INTO RELATED_TO (PROFILE_ID, DEPENDENT_PROFILE_ID, RELATIONSHIP)
 VALUES
 ('PROF001', 'PROF002', 'Ba'),
@@ -124,14 +124,12 @@ INSERT INTO SPECIALIZE_IN(SPECIALTY_ID, DOCTOR_ID)
 VALUES
 ('SPEC01','DOC01'), ('SPEC01','DOC06'), ('SPEC03','DOC07'), ('SPEC02','DOC08');
 
--- Phân bổ khoa cho các bệnh viện
 INSERT INTO HAS_SPECIALITY(SPECIALTY_ID, FACILITY_ID)
 VALUES
-('SPEC01','MF002'), ('SPEC02','MF002'), ('SPEC03','MF002'), ('SPEC04','MF002'), -- Tâm Anh 4 khoa
+('SPEC01','MF002'), ('SPEC02','MF002'), ('SPEC03','MF002'), ('SPEC04','MF002'), -- Tâm Anh 4 specialties
 ('SPEC01','MF001'), ('SPEC06','MF001'), ('SPEC02','MF001'),                   -- Chợ Rẫy
 ('SPEC01','MF003'), ('SPEC03','MF003');                                       -- Hoàn Mỹ
 
--- Chi nhánh
 INSERT INTO BRANCH(BRANCH_ID, FACILITY_ID, ADDRESS, HOTLINE, OPERATING_HOURS)
 VALUES
 ('BR001', 'MF001', '201B Nguyễn Chí Thanh, Quận 5', '19001234', '24/7'),
@@ -144,22 +142,25 @@ VALUES
 INSERT INTO WORKS_AT (FACILITY_ID, BRANCH_ID, DOCTOR_ID, START_DATE, END_DATE, WORKING_DAYS, SHIFT_TIMES)
 VALUES
 ('MF001', 'BR001', 'DOC01', '2009-01-01', NULL, 'Thứ 2 - Thứ 6', '08:00 - 17:00'),
-('MF003', 'BR003', 'DOC01', '2020-01-01', NULL, 'Thứ 7 - Chủ Nhật', '08:00 - 12:00'), -- BS Thức làm thêm ở HM
+('MF003', 'BR003', 'DOC01', '2020-01-01', NULL, 'Thứ 7 - Chủ Nhật', '08:00 - 12:00'), 
 ('MF002', 'BR002', 'DOC06', '2022-01-01', NULL, 'Thứ 2 - Chủ Nhật', '07:00 - 16:00'),
 ('MF002', 'BR002', 'DOC07', '2023-01-01', NULL, 'Thứ 2 - Chủ Nhật', '07:00 - 16:00'),
 ('MF002', 'BR002', 'DOC08', '2021-09-01', NULL, 'Thứ 2 - Chủ Nhật', '07:00 - 16:00');
 
 -- =====================================================
--- 8. SCHEDULE (Lịch khám QUÁ KHỨ và TƯƠNG LAI)
+-- 8. SCHEDULE 
 -- =====================================================
 INSERT INTO SCHEDULE (SCHEDULE_ID, DATE, START_TIME, END_TIME, SLOT_DURATION, MAX_PATIENT_PER_SLOT, FACILITY_ID, BRANCH_ID)
 VALUES
--- QUÁ KHỨ (Dùng để test History của Thành)
+-- QUÁ KHỨ 
 ('SCH_PAST_1', '2026-01-10', '08:00:00', '12:00:00', 30, 2, 'MF001', 'BR001'), -- Chợ Rẫy
 ('SCH_PAST_2', '2026-02-15', '08:00:00', '12:00:00', 30, 2, 'MF001', 'BR001'), -- Chợ Rẫy
 ('SCH_PAST_3', '2026-03-20', '08:00:00', '12:00:00', 30, 2, 'MF003', 'BR003'), -- Hoàn Mỹ
 
--- TƯƠNG LAI (Tâm Anh, MF002 - Đã sửa ngày thành tháng 6 cho khớp Appointment)
+-- 10/05/2026 and 11/05/2026
+('SCH_TA_10', '2026-05-10', '13:00:00', '17:00:00', 30, 2, 'MF002', 'BR002'), 
+('SCH_TA_11', '2026-05-11', '13:00:00', '17:00:00', 30, 2, 'MF002', 'BR002'),
+-- Future (Tâm Anh, MF002)
 ('SCH_TA_12', '2026-05-12', '07:00:00', '16:00:00', 30, 2, 'MF002', 'BR002'),
 ('SCH_TA_13', '2026-05-13', '07:00:00', '16:00:00', 30, 2, 'MF002', 'BR002'),
 ('SCH_TA_14', '2026-05-14', '07:00:00', '16:00:00', 30, 2, 'MF002', 'BR002'),
@@ -168,29 +169,56 @@ VALUES
 -- =====================================================
 -- 9. TIMESLOT 
 -- =====================================================
--- Timeslot cho Quá Khứ
+-- Timeslot for the past
 INSERT INTO TIMESLOT (SCHEDULE_ID, SLOT_NO, SLOT_START_TIME, SLOT_END_TIME, STATUS) VALUES
 ('SCH_PAST_1', 1, '08:00:00', '08:30:00', 'AVAILABLE'),
 ('SCH_PAST_2', 1, '08:00:00', '08:30:00', 'AVAILABLE'),
 ('SCH_PAST_3', 1, '08:00:00', '08:30:00', 'AVAILABLE');
 
--- Timeslot Tương Lai (Tâm Anh)
--- Ngày 12/06
+-- 10/05
+INSERT INTO TIMESLOT (SCHEDULE_ID, SLOT_NO, SLOT_START_TIME, SLOT_END_TIME, STATUS) VALUES
+('SCH_TA_10', 1, '13:00:00', '13:30:00', 'AVAILABLE'),
+('SCH_TA_10', 2, '13:30:00', '14:00:00', 'AVAILABLE'),
+('SCH_TA_10', 3, '14:00:00', '14:30:00', 'AVAILABLE'),
+('SCH_TA_10', 4, '14:30:00', '15:00:00', 'AVAILABLE'),
+('SCH_TA_10', 5, '15:00:00', '15:30:00', 'AVAILABLE');
+
+-- 11/05 
+INSERT INTO TIMESLOT (SCHEDULE_ID, SLOT_NO, SLOT_START_TIME, SLOT_END_TIME, STATUS) VALUES
+('SCH_TA_11', 1, '13:00:00', '13:30:00', 'AVAILABLE'),
+('SCH_TA_11', 2, '13:30:00', '14:00:00', 'AVAILABLE'),
+('SCH_TA_11', 3, '14:00:00', '14:30:00', 'AVAILABLE'),
+('SCH_TA_11', 4, '14:30:00', '15:00:00', 'AVAILABLE'),
+('SCH_TA_11', 5, '15:00:00', '15:30:00', 'AVAILABLE');
+
+-- 12/05
 INSERT INTO TIMESLOT (SCHEDULE_ID, SLOT_NO, SLOT_START_TIME, SLOT_END_TIME, STATUS) VALUES
 ('SCH_TA_12', 1, '07:00:00', '07:30:00', 'AVAILABLE'),
 ('SCH_TA_12', 2, '07:30:00', '08:00:00', 'AVAILABLE'),
 ('SCH_TA_12', 3, '08:00:00', '08:30:00', 'AVAILABLE'),
-('SCH_TA_12', 4, '08:30:00', '09:00:00', 'AVAILABLE');
--- Ngày 13/06
+('SCH_TA_12', 4, '08:30:00', '09:00:00', 'AVAILABLE'),
+('SCH_TA_12', 5, '09:00:00', '09:30:00', 'AVAILABLE');
+-- 13/05
 INSERT INTO TIMESLOT (SCHEDULE_ID, SLOT_NO, SLOT_START_TIME, SLOT_END_TIME, STATUS) VALUES
 ('SCH_TA_13', 1, '07:00:00', '07:30:00', 'AVAILABLE'),
-('SCH_TA_13', 2, '07:30:00', '08:00:00', 'AVAILABLE');
--- Ngày 14/06 & 15/06
+('SCH_TA_13', 2, '07:30:00', '08:00:00', 'AVAILABLE'),
+('SCH_TA_13', 3, '08:00:00', '08:30:00', 'AVAILABLE'),
+('SCH_TA_13', 4, '08:30:00', '09:00:00', 'AVAILABLE'),
+('SCH_TA_13', 5, '09:00:00', '09:30:00', 'AVAILABLE');
+-- 14/05
 INSERT INTO TIMESLOT (SCHEDULE_ID, SLOT_NO, SLOT_START_TIME, SLOT_END_TIME, STATUS) VALUES
 ('SCH_TA_14', 1, '07:00:00', '07:30:00', 'AVAILABLE'),
 ('SCH_TA_14', 2, '07:30:00', '08:00:00', 'AVAILABLE'),
+('SCH_TA_14', 3, '08:00:00', '08:30:00', 'AVAILABLE'),
+('SCH_TA_14', 4, '08:30:00', '09:00:00', 'AVAILABLE'),
+('SCH_TA_14', 5, '09:00:00', '09:30:00', 'AVAILABLE');
+-- Ngày 15/05
+INSERT INTO TIMESLOT (SCHEDULE_ID, SLOT_NO, SLOT_START_TIME, SLOT_END_TIME, STATUS) VALUES
 ('SCH_TA_15', 1, '07:00:00', '07:30:00', 'AVAILABLE'),
-('SCH_TA_15', 2, '07:30:00', '08:00:00', 'AVAILABLE');
+('SCH_TA_15', 2, '07:30:00', '08:00:00', 'AVAILABLE'),
+('SCH_TA_15', 3, '08:00:00', '08:30:00', 'AVAILABLE'),
+('SCH_TA_15', 4, '08:30:00', '09:00:00', 'AVAILABLE'),
+('SCH_TA_15', 5, '09:00:00', '09:30:00', 'AVAILABLE');
 
 -- =====================================================
 -- 10. APPOINTMENT 
@@ -200,16 +228,17 @@ SET @disable_date_check = 1;
 
 INSERT INTO APPOINTMENT (APPOINTMENT_ID, TIME, DATE, SERVICE_TYPE, SPECIALTY_ID, PROFILE_ID, SCHEDULE_ID, SLOT_NO)
 VALUES
--- QUÁ KHỨ 
+-- Past (Thành's family)
 ('APP_PAST_01', '08:00:00', '2026-01-10', 'Khám Chuyên Gia', 'SPEC01', 'PROF001', 'SCH_PAST_1', 1), 
 ('APP_PAST_02', '08:00:00', '2026-02-15', 'Khám Chuyên Gia', 'SPEC01', 'PROF002', 'SCH_PAST_2', 1), 
 ('APP_PAST_03', '08:00:00', '2026-03-20', 'Khám Đa Khoa',    'SPEC01', 'PROF003', 'SCH_PAST_3', 1), 
--- TƯƠNG LAI 
-('APP_12_01', '07:00:00', '2026-05-12', 'Khám Dịch Vụ', 'SPEC01', 'PROF001', 'SCH_TA_12', 1), 
-('APP_12_02', '07:00:00', '2026-05-12', 'Khám Dịch Vụ', 'SPEC02', 'PROF004', 'SCH_TA_12', 1), 
-('APP_13_01', '07:00:00', '2026-05-13', 'Khám Thường',  'SPEC01', 'PROF002', 'SCH_TA_13', 1), 
-('APP_14_01', '07:30:00', '2026-05-14', 'Khám Thường',  'SPEC03', 'PROF005', 'SCH_TA_14', 2), 
-('APP_15_01', '07:00:00', '2026-05-15', 'Khám Thường',  'SPEC02', 'PROF003', 'SCH_TA_15', 1);
+
+-- Future
+('APP_12_01', '07:00:00', '2026-05-12', 'Khám Dịch Vụ', 'SPEC01', 'PROF001', 'SCH_TA_12', 1), -- Thành (Chưa có bệnh án)
+('APP_12_02', '07:00:00', '2026-05-12', 'Khám Dịch Vụ', 'SPEC02', 'PROF004', 'SCH_TA_12', 1), -- Khách khác
+('APP_13_01', '07:00:00', '2026-05-13', 'Khám Thường',  'SPEC01', 'PROF002', 'SCH_TA_13', 1), -- Ba Mai (Chưa có bệnh án)
+('APP_14_01', '07:30:00', '2026-05-14', 'Khám Thường',  'SPEC03', 'PROF005', 'SCH_TA_14', 2), -- Khách khác
+('APP_15_01', '07:00:00', '2026-05-15', 'Khám Thường',  'SPEC02', 'PROF003', 'SCH_TA_15', 1); -- Mẹ Thơ (Chưa có bệnh án)
 
 SET @disable_date_check = 0;
 
@@ -234,30 +263,30 @@ VALUES
 ('APP_13_01', 'Khám sức khỏe tổng quát cho người lớn tuổi');
 
 -- =====================================================
--- 13. BILLING_RECORD (Tổng tiền khớp với bảng SERVICES)
+-- 13. BILLING_RECORD 
 -- =====================================================
 INSERT INTO BILLING_RECORD (BILLING_ID, APPOINTMENT_ID, TOTAL_FEE, PAYMENT_METHOD, STATUS)
 VALUES
+-- Quá khứ
 ('BILL_P1', 'APP_PAST_01', 500000.00, 'BANK_TRANSFER', 'PAID'),
 ('BILL_P2', 'APP_PAST_02', 500000.00, 'CASH',          'PAID'),
 ('BILL_P3', 'APP_PAST_03', 200000.00, 'INSURANCE',     'PAID'),
-('BILL_F1', 'APP_12_01',   300000.00, 'BANK_TRANSFER', 'PAID'),
-('BILL_F2', 'APP_13_01',   150000.00, 'CASH',          'PENDING');
+
+-- Tương lai
+('BILL_F1', 'APP_12_01',   300000.00, 'BANK_TRANSFER', 'PAID'),    
+('BILL_F2', 'APP_13_01',   150000.00, 'CASH',          'PENDING'); 
 
 -- =====================================================
 -- 14. PRESCRIPTION & MEDICAL RECORD
 -- =====================================================
 INSERT INTO PRESCRIPTION (PRESCRIPTION_ID)
-VALUES ('PRES_P1'), ('PRES_P2'), ('PRES_P3'), ('PRES_F1');
+VALUES ('PRES_P1'), ('PRES_P2'), ('PRES_P3');
 
 INSERT INTO MEDICAL_RECORD (MEDICAL_RECORD_ID, STATUS, PRIMARY_DIAGNOSIS, DETAILED_NOTE, DATE_OF_ISSUANCE, APPOINTMENT_ID, PRESCRIPTION_ID)
 VALUES
--- Hồ sơ quá khứ (Đã kết luận)
 ('REC_P1', 'CONCLUDED', 'Rối loạn thần kinh thực vật', 'Không có tổn thương thực thể ở tim', '2026-01-10', 'APP_PAST_01', 'PRES_P1'),
 ('REC_P2', 'CONCLUDED', 'Tăng huyết áp vô căn',       'Tiếp tục phác đồ cũ',                  '2026-02-15', 'APP_PAST_02', 'PRES_P2'),
-('REC_P3', 'CONCLUDED', 'Suy nhược cơ thể',           'Cần bổ sung vitamin và nghỉ ngơi',     '2026-03-20', 'APP_PAST_03', 'PRES_P3'),
--- Hồ sơ tương lai (Mới tạo nháp)
-('REC_F1', 'DRAFT',     NULL,                         NULL,                                   '2026-05-12', 'APP_12_01', 'PRES_F1');
+('REC_P3', 'CONCLUDED', 'Suy nhược cơ thể',           'Cần bổ sung vitamin và nghỉ ngơi',     '2026-03-20', 'APP_PAST_03', 'PRES_P3');
 
 INSERT INTO PRESCRIPTION_DETAIL (PRESCRIPTION_ID, DETAIL_NO, FREQUENCY, MEDICATION, USAGES, INSTRUCTION)
 VALUES
