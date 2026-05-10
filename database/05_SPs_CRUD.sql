@@ -61,8 +61,6 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '[DB] INSERT failed: The appointment DATE does not match the date of the selected schedule.';
     END IF;
  
-    -- Appointment date must be at least tomorrow
-
     -- A PROFILE cannot have 2 appointments in the same DATE and TIME
     SELECT COUNT(*) INTO v_duplicate_booking
       FROM APPOINTMENT
@@ -101,6 +99,7 @@ BEGIN
     DECLARE v_old_slot_no       INT         DEFAULT NULL;
     DECLARE v_old_date          DATE        DEFAULT NULL;
     DECLARE v_old_service_type  VARCHAR(100) DEFAULT NULL;
+    DECLARE v_old_specialty_id  VARCHAR(20) DEFAULT NULL; 
     DECLARE v_billing_status    VARCHAR(50) DEFAULT NULL;
     DECLARE v_new_slot_status   VARCHAR(50) DEFAULT NULL;
     DECLARE v_new_schedule_date DATE        DEFAULT NULL;
@@ -108,8 +107,8 @@ BEGIN
     DECLARE v_profile_exists    INT         DEFAULT 0; 
     DECLARE v_duplicate_booking INT         DEFAULT 0;
  
-    SELECT SCHEDULE_ID, SLOT_NO, DATE, SERVICE_TYPE 
-      INTO v_old_schedule_id, v_old_slot_no, v_old_date, v_old_service_type
+    SELECT SCHEDULE_ID, SLOT_NO, DATE, SERVICE_TYPE, SPECIALTY_ID 
+      INTO v_old_schedule_id, v_old_slot_no, v_old_date, v_old_service_type, v_old_specialty_id
       FROM APPOINTMENT WHERE APPOINTMENT_ID = p_appointment_id;
      
     IF v_old_schedule_id IS NULL THEN
@@ -125,6 +124,10 @@ BEGIN
 
         IF (p_new_service_type <> v_old_service_type) THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '[DB] UPDATE failed: Cannot change the service type of a paid appointment. ';
+        END IF;
+        
+        IF (p_new_specialty_id <> v_old_specialty_id) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '[DB] UPDATE failed: Cannot change the specialty of a paid appointment. ';
         END IF;
     END IF;
  
@@ -207,16 +210,6 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = '[DB] DELETE failed: The appointment date has already passed.';
     END IF;
-
-    SELECT MEDICAL_RECORD_ID
-      INTO v_medical_record_id
-      FROM MEDICAL_RECORD
-     WHERE APPOINTMENT_ID = p_appointment_id;
- 
-    IF v_medical_record_id IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = '[DB] DELETE failed: A medical record is associated with this appointment.';
-    END IF;
  
     SELECT STATUS
       INTO v_billing_status
@@ -228,6 +221,15 @@ BEGIN
             SET MESSAGE_TEXT = '[DB] DELETE failed: This appointment has been paid.';
     END IF;
  
+    SELECT MEDICAL_RECORD_ID
+    INTO v_medical_record_id
+    FROM MEDICAL_RECORD
+    WHERE APPOINTMENT_ID = p_appointment_id;
+ 
+    IF v_medical_record_id IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '[DB] DELETE failed: A medical record is associated with this appointment.';
+    END IF;
     
  
     -- =========================================================
