@@ -29,3 +29,6 @@ node_modules/.DS_Store
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Local Nginx runtime files
+nginx/logs/
